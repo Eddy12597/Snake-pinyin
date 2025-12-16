@@ -242,7 +242,7 @@ function generateFoodPair() {
 			correctPinyin: correctIsFirst ? options[0].pinyin : options[1].pinyin,
 		};
 	} while (Math.abs(food1.x - food2.x) < 2 && Math.abs(food1.y - food2.y) < 2);
-	
+
 	// 调整位置避免重叠
 	[food1, food2].forEach((food) => {
 		let foodOnSnake, foodTooNear;
@@ -324,8 +324,8 @@ function gameLoop(currentTimestamp) {
         const timeElapsed = CONFIG.GAME_TIME - gameState.timeLeft;
         const progress = timeElapsed / CONFIG.GAME_TIME;
         
-        // 从 10 逐渐减少到 3，随着游戏时间减少
-        gameState.speedDivider = Math.max(2, 10 - (progress * 7));
+        // 从 10 逐渐减少到 1，随着游戏时间减少
+        gameState.speedDivider = Math.max(1, 10 - (progress * 7));
         
         console.log(`速度更新: ${gameState.speedDivider} (时间: ${gameState.timeLeft}s)`);
     }
@@ -350,10 +350,21 @@ function gameLoop(currentTimestamp) {
     requestAnimationFrame(gameLoop);
 }
 
-let wrongAnswers = [];
+let wrongAnswers = new Set();
+let wrongAnswersList = []
 
 function showWrongAnswers() {
+	if (!gameState.gamePaused) {
+		togglePause();
+	}
+	wrongAnswersList = [ ...wrongAnswers ];
+	
 	console.log("showWrongAnswers()");
+	for (let i = 0; i < wrongAnswersList.length; i++) {
+		console.log(`${i + 1}: ${wrongAnswersList[i].word}: 正确：${wrongAnswersList[i].correct}, 错误：${wrongAnswersList[i].pinyin}`);
+	}
+
+	// add animation, pop-up, showing wrong and correct aswes
 }
 
 function updateGame() {
@@ -394,11 +405,11 @@ function updateGame() {
 						parseInt(document.getElementById("wrong-count").textContent) + 1;
 					document.getElementById("wrong-count").textContent = wrongCount;
 					showFeedback(`✗ 错误！-${CONFIG.WRONG_PENALTY}分`, false);
-					// wrongAnswers.push({
-					// 	word: food.word,
-					// 	pinyin: food.pinyin,
-					// 	correct: food.correctPinyin,
-					// });
+					wrongAnswers.add({
+						word: food.word,
+						pinyin: food.pinyin,
+						correct: food.correctPinyin,
+					});
 					// 错误：蛇变长（增加一节），不pop
 					console.log("选择错误，蛇变长增加难度");
 				}
@@ -720,7 +731,7 @@ function gameOver(reason) {
 			}%`
 		);
 		bgAudio.pause();
-
+		showWrongAnswers();
 		backToLogin();
 	}, 500);
 }
@@ -773,6 +784,10 @@ function handleKeyPress(e) {
 	}
 
 	e.preventDefault(); // 防止页面滚动
+}
+
+function handleClickReview() {
+	showWrongAnswers();
 }
 
 // 添加CSS动画

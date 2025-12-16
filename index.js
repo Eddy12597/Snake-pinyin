@@ -23,9 +23,13 @@ let gameState = {
 	direction: { x: 1, y: 0 }, // 改为对象形式
 	isChoosing: true,
 	snakeSpeedCounter: 0, // 速度控制计数器
-	speedDivider: 10, // 每8帧移动一次，进一步减慢
+	speedDivider: 10, // from 10 to 3, as time from 0 to 600
+	lastSpeedUpdate: 0,
 };
 
+// let speedDivDecSlope = (1 - 10) / (10 * 60) / 1000;
+
+let lastSpdDiv = 10;
 let lastWord = "";
 // 题目数据集 - 简化版，不显示正确错误
 const questionSets = [
@@ -78,12 +82,18 @@ const questionSets = [
 	{ word: "妖媚", correct: "yāo mèi", wrong: "yāo méi" },
 ];
 let canvas, ctx;
-
+var correctAudio = new Audio("./assets/correct_effect.mp3");
+var incorrectAudio = new Audio("./assets/wrong_effect.mp3");
+var bgAudio = new Audio("./assets/gimkit_flisl.mp3");
 // 初始化
 function init() {
+	var correctAudio = new Audio("./assets/correct_effect.mp3");
+	var incorrectAudio = new Audio("./assets/wrong_effect.mp3");
+	var bgAudio = new Audio("./assets/gimkit_flisl.mp3");
 	canvas = document.getElementById("game-canvas");
 	ctx = canvas.getContext("2d");
 	setupEventListeners();
+
 	console.log("游戏初始化完成！");
 }
 
@@ -210,25 +220,32 @@ function generateFoodPair() {
 	const gridHeight = canvas.height / CONFIG.GRID_SIZE;
 
 	// 生成两个食物位置（上下分开）
-	let food1 = {
-		x: Math.floor(Math.min(Math.max(Math.random() * gridWidth * 0.7, 0), gridWidth) + 0.5),
-		y: Math.floor(Math.min(Math.max(Math.random() * gridHeight * 0.7, 0), gridHeight) + 0.5),
-		pinyin: options[0].pinyin,
-		isCorrect: options[0].isCorrect,
-		optionIndex: 0,
-	};
+	let food1, food2;
+	do {
+		food1 = {
+			x: Math.floor(Math.min(Math.max(Math.random() * gridWidth * 0.7, 0), gridWidth) + 0.5),
+			y: Math.floor(Math.min(Math.max(Math.random() * gridHeight * 0.7, 0), gridHeight) + 0.5),
+			pinyin: options[0].pinyin,
+			isCorrect: options[0].isCorrect,
+			optionIndex: 0,
+			word: question.word,
+			correctPinyin: correctIsFirst ? options[0].pinyin : options[1].pinyin,
+		};
 
-	let food2 = {
-		x: Math.floor(Math.min(Math.max(Math.random() * gridWidth * 0.7, 0), gridWidth) + 0.5),
-		y: Math.floor(Math.min(Math.max(Math.random() * gridHeight * 0.7, 0), gridHeight) + 0.5),
-		pinyin: options[1].pinyin,
-		isCorrect: options[1].isCorrect,
-		optionIndex: 1,
-	};
-
+		food2 = {
+			x: Math.floor(Math.min(Math.max(Math.random() * gridWidth * 0.7, 0), gridWidth) + 0.5),
+			y: Math.floor(Math.min(Math.max(Math.random() * gridHeight * 0.7, 0), gridHeight) + 0.5),
+			pinyin: options[1].pinyin,
+			isCorrect: options[1].isCorrect,
+			optionIndex: 1,
+			word: question.word,
+			correctPinyin: correctIsFirst ? options[0].pinyin : options[1].pinyin,
+		};
+	} while (Math.abs(food1.x - food2.x) < 2 && Math.abs(food1.y - food2.y) < 2);
+	
 	// 调整位置避免重叠
 	[food1, food2].forEach((food) => {
-		let foodOnSnake;
+		let foodOnSnake, foodTooNear;
 		let attempts = 0;
 		const maxAttempts = 50;
 
@@ -242,6 +259,11 @@ function generateFoodPair() {
 				food.x = Math.floor(Math.random() * (gridWidth - 4)) + 2;
 				food.y = Math.floor(Math.random() * (gridHeight - 4)) + 2;
 			}
+
+			foodTooNear = Math.abs(food1.x - food2.x) <= 2 && Math.abs(food1.y - food2.y) <= 2;
+			if (foodTooNear) {
+				continue;
+			} // Is this right??
 
 			attempts++;
 			if (attempts > maxAttempts) {
@@ -288,37 +310,51 @@ function handleOptionSelect(index, isCorrect) {
 }
 
 // 游戏循环
-function gameLoop(currentTime) {
-	if (!gameState.gameRunning || gameState.gamePaused) {
-		requestAnimationFrame(gameLoop);
-		return;
-	}
+function gameLoop(currentTimestamp) {
+    if (!gameState.gameRunning || gameState.gamePaused) {
+        requestAnimationFrame(gameLoop);
+        return;
+    }
 
-	const secondsSinceLastRender =
-		(currentTime - gameState.lastRenderTime) / 1000;
-	if (secondsSinceLastRender < 1 / 60) {
-		// 固定60fps
-		requestAnimationFrame(gameLoop);
-		return;
-	}
+    // 每秒更新一次速度，逐渐加快
+    if (currentTimestamp - gameState.lastSpeedUpdate > 1000) {
+        gameState.lastSpeedUpdate = currentTimestamp;
+        
+        // 随着时间的推移，逐渐减少 speedDivider（加快速度）
+        const timeElapsed = CONFIG.GAME_TIME - gameState.timeLeft;
+        const progress = timeElapsed / CONFIG.GAME_TIME;
+        
+        // 从 10 逐渐减少到 3，随着游戏时间减少
+        gameState.speedDivider = Math.max(2, 10 - (progress * 7));
+        
+        console.log(`速度更新: ${gameState.speedDivider} (时间: ${gameState.timeLeft}s)`);
+    }
 
-	gameState.lastRenderTime = currentTime;
+    const secondsSinceLastRender =
+        (currentTimestamp - gameState.lastRenderTime) / 1000;
+    if (secondsSinceLastRender < 1 / 60) {
+        requestAnimationFrame(gameLoop);
+        return;
+    }
 
-	// 每8帧移动一次蛇，大大减慢速度
-	gameState.snakeSpeedCounter++;
-	if (gameState.snakeSpeedCounter >= gameState.speedDivider) {
-		gameState.snakeSpeedCounter = 0;
-		// if (!gameState.isChoosing) {
-			updateGame();
-		// }
-	}
+    gameState.lastRenderTime = currentTimestamp;
 
-	drawGame();
-	requestAnimationFrame(gameLoop);
+    // 使用 speedDivider 控制移动频率
+    gameState.snakeSpeedCounter++;
+    if (gameState.snakeSpeedCounter >= gameState.speedDivider) {
+        gameState.snakeSpeedCounter = 0;
+        updateGame();
+    }
+
+    drawGame();
+    requestAnimationFrame(gameLoop);
 }
 
-let correctAudio = new Audio("./assets/correct_effect.mp3");
-let incorrectAudio = new Audio("./assets/wrong_effect.mp3")
+let wrongAnswers = [];
+
+function showWrongAnswers() {
+	console.log("showWrongAnswers()");
+}
 
 function updateGame() {
 	const head = { ...gameState.snake[0] };
@@ -358,7 +394,11 @@ function updateGame() {
 						parseInt(document.getElementById("wrong-count").textContent) + 1;
 					document.getElementById("wrong-count").textContent = wrongCount;
 					showFeedback(`✗ 错误！-${CONFIG.WRONG_PENALTY}分`, false);
-
+					// wrongAnswers.push({
+					// 	word: food.word,
+					// 	pinyin: food.pinyin,
+					// 	correct: food.correctPinyin,
+					// });
 					// 错误：蛇变长（增加一节），不pop
 					console.log("选择错误，蛇变长增加难度");
 				}
@@ -626,7 +666,13 @@ function updateTimerDisplay() {
 		.padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }
 
+// also plays bg audio
 function startTimer() {
+	setTimeout(() => {
+		bgAudio.play();
+	}, 300);
+	bgAudio.loop = true;
+
 	if (gameState.timerInterval) clearInterval(gameState.timerInterval);
 
 	gameState.timerInterval = setInterval(() => {
@@ -643,6 +689,11 @@ function startTimer() {
 
 function togglePause() {
 	gameState.gamePaused = !gameState.gamePaused;
+	if (!gameState.gamePaused) {
+		bgAudio.play();
+	} else {
+		bgAudio.pause();
+	}
 	document.getElementById("pause-btn").innerHTML = gameState.gamePaused
 		? '<i class="fas fa-play"></i> 继续'
 		: '<i class="fas fa-pause"></i> 暂停';
@@ -668,6 +719,7 @@ function gameOver(reason) {
 			) || 0
 			}%`
 		);
+		bgAudio.pause();
 
 		backToLogin();
 	}, 500);
@@ -692,7 +744,7 @@ function handleKeyPress(e) {
 
 	const key = e.key.toLowerCase();
 
-	if (/*key === " " || */ key === "space") {
+	if (key === "p" || key === "space") {
 		togglePause();
 		return;
 	}

@@ -2,3 +2,6 @@
 - random - Ok
 - 游戏结束 - 重生
 - 去掉选择
+- increase font size
+- add gimkit bgm
+- increase game speed

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>字音贪吃蛇挑战</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="./index.js" defer></script>
+    <link rel="stylesheet" href="./index.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div id="login-page">
+        <div class="login-header">
+          <h1><i class="fas fa-dragon"></i> 字音贪吃蛇挑战</h1>
+          <p>识别正确读音，挑战你的汉字知识！</p>
+        </div>
+
+        <div class="login-form">
+          <div class="form-group">
+            <label for="player-name"
+              ><i class="fas fa-user"></i> 你的姓名</label
+            >
+            <input type="text" id="player-name" placeholder="请输入姓名" />
+          </div>
+
+          <button class="start-button" id="start-btn">
+            <i class="fas fa-play"></i> 开始挑战
+          </button>
+
+          <div class="rules" style="margin-top: 30px">
+            <h4><i class="fas fa-info-circle"></i> 游戏规则</h4>
+            <ul>
+              <li>每次出现两个读音（颜色相同）</li>
+              <li>先选择你认为正确的读音</li>
+              <li>然后控制蛇吃掉你选择的读音</li>
+              <li>选择正确：+10分，蛇长度不变</li>
+              <li>选择错误：-5分，蛇变长增加难度</li>
+              <li>撞到墙壁或自己：游戏结束</li>
+              <li>游戏时间：10分钟</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div id="game-page">
+        <div class="game-header">
+          <div class="player-info">
+            <h2 id="display-name">玩家</h2>
+          </div>
+          <div class="score-display">
+            <div>
+              <span class="score-label">得分：</span>
+              <span class="score-value" id="score">0</span>
+            </div>
+            <div>
+              <span class="score-label">时间：</span>
+              <span class="score-value timer" id="timer">10:00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="game-area">
+          <div class="game-board">
+            <div class="game-status">
+              <div class="status-item">
+                <span class="status-label">长度</span>
+                <span class="status-value" id="snake-length">3</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">正确</span>
+                <span class="status-value" id="correct-count">0</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">错误</span>
+                <span class="status-value" id="wrong-count">0</span>
+              </div>
+            </div>
+
+            <canvas id="game-canvas" width="600" height="400"></canvas>
+
+            <div class="control-buttons">
+              <button class="control-button" id="pause-btn">
+                <i class="fas fa-pause"></i> 暂停
+              </button>
+              <button class="control-button exit" id="exit-btn">
+                <i class="fas fa-sign-out-alt"></i> 退出
+              </button>
+            </div>
+          </div>
+
+          <div class="game-info">
+            <div class="current-word">
+              <h3>当前汉字</h3>
+              <div
+                style="
+                  font-size: 2.5em;
+                  font-weight: bold;
+                  color: #333;
+                  text-align: center;
+                  margin: 10px 0;
+                "
+                id="current-word"
+              >
+                等待开始...
+              </div>
+
+              <!-- <h4 style="margin-top: 15px; color: #666">请先选择正确读音：</h4> -->
+
+              <!-- <div class="food-options" id="food-options">
+              
+              </div>
+
+              <div
+                id="selection-status"
+                style="
+                  margin-top: 15px;
+                  padding: 10px;
+                  border-radius: 5px;
+                  text-align: center;
+                  display: none;
+                "
+              >
+                 选择状态会通过JS动态显示
+              </div>
+
+              <div id="hint-text" class="hint-text">
+                先点击选择你认为正确的读音，然后控制蛇去吃它
+              </div> -->
+            </div>
+
+            <div class="rules">
+              <h4><i class="fas fa-gamepad"></i> 控制方法</h4>
+              <ul>
+                <li>方向键 ↑↓←→ 控制移动</li>
+                <li>WASD 键也可以控制</li>
+                <li>空格键暂停/继续</li>
+                <li>贪吃蛇速度很慢，易于操作</li>
+              </ul>
+            </div>
+
+            <div
+              style="
+                margin-top: 20px;
+                padding: 15px;
+                background: #fff3cd;
+                border-radius: 8px;
+              "
+            >
+              <h4 style="color: #856404; margin-bottom: 8px">
+                <i class="fas fa-lightbulb"></i> 重要提示
+              </h4>
+              <p style="color: #856404; font-size: 0.9em">
+                1. 选择正确：得分，长度不变<br />
+                2. 选择错误：扣分，蛇变长（增加难度）
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

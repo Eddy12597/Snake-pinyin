@@ -317,6 +317,9 @@ function gameLoop(currentTime) {
 	requestAnimationFrame(gameLoop);
 }
 
+let correctAudio = new Audio("./assets/correct_effect.mp3");
+let incorrectAudio = new Audio("./assets/wrong_effect.mp3")
+
 function updateGame() {
 	const head = { ...gameState.snake[0] };
 
@@ -337,6 +340,7 @@ function updateGame() {
 			// 检查吃的是否是用户选择的食物
 			// if (food.optionIndex === gameState.userSelection) {
 				if (food.isCorrect) {
+					correctAudio.play();
 					// 选择正确且吃掉了
 					gameState.score += CONFIG.CORRECT_SCORE;
 					const correctCount =
@@ -347,6 +351,7 @@ function updateGame() {
 					// 正确：长度不变，移除尾部一节（保持长度）
 					gameState.snake.pop();
 				} else {
+					incorrectAudio.play();
 					// 选择错误但吃掉了
 					gameState.score = Math.max(0, gameState.score - CONFIG.WRONG_PENALTY);
 					const wrongCount =

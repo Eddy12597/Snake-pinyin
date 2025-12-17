@@ -25,6 +25,7 @@ let gameState = {
 	snakeSpeedCounter: 0, // 速度控制计数器
 	speedDivider: 10, // from 10 to 3, as time from 0 to 600
 	lastSpeedUpdate: 0,
+	hearts: 3,
 };
 
 // let speedDivDecSlope = (1 - 10) / (10 * 60) / 1000;
@@ -33,6 +34,8 @@ let lastSpdDiv = 10;
 let lastWord = "";
 // 题目数据集 - 简化版，不显示正确错误
 const questionSets = [
+
+	// 字音
 	{ word: "召开", correct: "zhào kāi", wrong: "zhāo kāi" },
 	{ word: "勉强", correct: "miǎn qiǎng", wrong: "mián qiáng" },
 	{ word: "妥协", correct: "tuǒ xié", wrong: "tuǒ xiě" },
@@ -80,16 +83,188 @@ const questionSets = [
 	{ word: "踱步", correct: "duó bù", wrong: "dù bù" },
 	{ word: "堕落", correct: "duò luò", wrong: "zhuì luò" },
 	{ word: "妖媚", correct: "yāo mèi", wrong: "yāo méi" },
+
+	// 字形
+
+	{ word: "zhào kāi", correct: "召开", wrong: "召号" },
+	{ word: "miǎn qiǎng", correct: "勉强", wrong: "免强" },
+	{ word: "tuǒ xié", correct: "妥协", wrong: "妥胁" },
+	{ word: "fù bì", correct: "复辟", wrong: "复僻" },
+	{ word: "jǐng tì", correct: "警惕", wrong: "警剔" },
+	{ word: "wǔ rǔ", correct: "侮辱", wrong: "污辱" },
+	{ word: "bù qū bù náo", correct: "不屈不挠", wrong: "不屈不饶" },
+	{ word: "yǒng chuí bù xiǔ", correct: "永垂不朽", wrong: "永垂不巧" },
+	{ word: "hán jìn", correct: "寒噤", wrong: "寒禁" },
+	{ word: "hán xuān", correct: "寒暄", wrong: "寒喧" },
+	{ word: "shà shí", correct: "霎时", wrong: "刹时" },
+	{ word: "xī xī rǎng rǎng", correct: "熙熙攘攘", wrong: "熙熙嚷嚷" },
+	{ word: "yùn chóu wéi wò", correct: "运筹帷幄", wrong: "运筹帷握" },
+	{ word: "cháng tú bá shè", correct: "长途跋涉", wrong: "长途拔涉" },
+	{ word: "hù sù zhōng cháng", correct: "互诉衷肠", wrong: "互诉忠肠" },
+	{ word: "pāi shǒu chēng kuài", correct: "拍手称快", wrong: "拍手成快" },
+	{ word: "zǐ jīng huā", correct: "紫荆花", wrong: "紫金花" },
+	{ word: "yǎn yìng", correct: "掩映", wrong: "眼映" },
+	{ word: "shì rén zhǔ mù", correct: "世人瞩目", wrong: "世人嘱目" },
+	{ word: "duō duō", correct: "咄咄", wrong: "拙拙" },
+	{ word: "wū gòu", correct: "污垢", wrong: "污够" },
+	{ word: "chàn dǒu", correct: "颤抖", wrong: "擅抖" },
+	{ word: "yòng jīn", correct: "佣金", wrong: "拥金" },
+	{ word: "qiáo cuì", correct: "憔悴", wrong: "憔瘁" },
+	{ word: "hùn míng", correct: "诨名", wrong: "浑名" },
+	{ word: "wū yè", correct: "呜咽", wrong: "呜烟" },
+	{ word: "zhuàn qián", correct: "赚钱", wrong: "嫌钱" },
+	{ word: "fàng sì", correct: "放肆", wrong: "放事" },
+	{ word: "jiū gé", correct: "纠葛", wrong: "纠隔" },
+	{ word: "gān lào", correct: "干酪", wrong: "干络" },
+	{ word: "sù sòng", correct: "诉讼", wrong: "诉松" },
+	{ word: "zuó mo", correct: "琢磨", wrong: "啄磨" },
+	{ word: "lā ta", correct: "邋遢", wrong: "拉塌" },
+	{ word: "wèi jiè", correct: "慰藉", wrong: "慰籍" },
+	{ word: "piān pì", correct: "偏僻", wrong: "偏辟" },
+	{ word: "gū kǔ líng dīng", correct: "孤苦伶仃", wrong: "孤苦零丁" },
+	{ word: "duō duō guài shì", correct: "咄咄怪事", wrong: "拙拙怪事" },
+	{ word: "qū zūn fǔ jiù", correct: "屈尊俯就", wrong: "屈尊伏就" },
+	{ word: "shí lái yùn zhuǎn", correct: "时来运转", wrong: "时来运传" },
+	{ word: "jú cù bù ān", correct: "局促不安", wrong: "局触不安" },
+	{ word: "jié rán yī shēn", correct: "孑然一身", wrong: "孑孓一身" },
+	{ word: "yān rán", correct: "嫣然", wrong: "焉然" },
+	{ word: "xié nì", correct: "斜睨", wrong: "斜倪" },
+	{ word: "lán lǚ", correct: "褴褛", wrong: "篮缕" },
+	{ word: "gěng zhù", correct: "哽住", wrong: "埂住" },
+	{ word: "ráo shù", correct: "饶恕", wrong: "绕恕" },
+	{ word: "hài sào", correct: "害臊", wrong: "害躁" },
+	{ word: "xǐng bí tì", correct: "擤鼻涕", wrong: "醒鼻涕" },
+	{ word: "piǎo yī yǎn", correct: "瞟一眼", wrong: "票一眼" },
+	{ word: "chǒu yī yǎn", correct: "瞅一眼", wrong: "秋一眼" },
+	{ word: "quán fà", correct: "鬈发", wrong: "卷发" },
+	{ word: "jiǒng tài", correct: "窘态", wrong: "炯态" },
+	{ word: "duó bù", correct: "踱步", wrong: "渡步" },
+	{ word: "duò luò", correct: "堕落", wrong: "坠落" },
+	{ word: "yāo mèi", correct: "妖媚", wrong: "妖魅" },
+	{ word: "yān rán yī xiào", correct: "嫣然一笑", wrong: "焉然一笑" },
+	{ word: "duó kuàng ér chū", correct: "夺眶而出", wrong: "夺框而出" },
+	{ word: "yī guān chǔ chǔ", correct: "衣冠楚楚", wrong: "衣冠处处" },
+	{ word: "jié rán bù tóng", correct: "截然不同", wrong: "绝然不同" },
+	{ word: "bǐ yí bù xiè", correct: "鄙夷不屑", wrong: "鄙疑不屑" },
+	{ word: "duò xìng", correct: "惰性", wrong: "堕性" },
+	{ word: "qián chéng", correct: "虔诚", wrong: "虔成" },
+	{ word: "biān zuǎn", correct: "编纂", wrong: "编篡" },
+	{ word: "kāi pì", correct: "开辟", wrong: "开僻" },
+	{ word: "zhóu xiàn", correct: "轴线", wrong: "轴钱" },
+	{ word: "yā zhòu", correct: "压轴", wrong: "压宙" },
+	{ word: "guī gēn dào dǐ", correct: "归根到底", wrong: "归根到低" },
+	{ word: "nú yán bì xī", correct: "奴颜婢膝", wrong: "奴颜卑膝" },
+	{ word: "jīng pí lì jié", correct: "精疲力竭", wrong: "精疲力解" },
+	{ word: "zì zhēn jù zhuó", correct: "字斟句酌", wrong: "字斟句灼" },
+	{ word: "luó ji", correct: "逻辑", wrong: "逻缉" },
+	{ word: "zhú sǔn", correct: "竹笋", wrong: "竹筍" },
+	{ word: "zhūn zhūn", correct: "谆谆", wrong: "淳淳" },
+	{ word: "zhěn zhì", correct: "诊治", wrong: "珍治" },
+	{ word: "làn diào", correct: "滥调", wrong: "烂调" },
+	{ word: "yì zào", correct: "臆造", wrong: "意造" },
+	{ word: "bì sè", correct: "闭塞", wrong: "闭涩" },
+	{ word: "píng sāi", correct: "瓶塞", wrong: "瓶赛" },
+	{ word: "biān sài", correct: "边塞", wrong: "边赛" },
+	{ word: "qīn chāi", correct: "钦差", wrong: "亲差" },
+	{ word: "chā cuò", correct: "差错", wrong: "差措" },
+	{ word: "cēn cī", correct: "参差", wrong: "参插" },
+	{ word: "shēng tūn huó bō", correct: "生吞活剥", wrong: "生吞活拨" },
+	{ word: "bāo huā shēng", correct: "剥花生", wrong: "拨花生" },
+	{ word: "qián pū hòu jì", correct: "前仆后继", wrong: "前扑后继" },
+	{ word: "yǒu dì fàng shǐ", correct: "有的放矢", wrong: "有的放失" },
+	{ word: "huá zhòng qǔ chǒng", correct: "哗众取宠", wrong: "华众取宠" },
+	{ word: "tú yǒu xū míng", correct: "徒有虚名", wrong: "徒有虚明" },
+	{ word: "ruò míng ruò àn", correct: "若明若暗", wrong: "若名若暗" },
+	{ word: "kuā kuā qí tán", correct: "夸夸其谈", wrong: "夸夸奇谈" },
+	{ word: "miù zhǒng liú chuán", correct: "谬种流传", wrong: "缪种流传" },
+	{ word: "huá ér bù shí", correct: "华而不实", wrong: "花而不实" },
+	{ word: "yú lùn", correct: "舆论", wrong: "与论" },
+	{ word: "miù wù", correct: "谬误", wrong: "缪误" },
+	{ word: "hàn wèi", correct: "捍卫", wrong: "悍卫" },
+	{ word: "hú zhōu", correct: "胡诌", wrong: "胡邹" },
+	{ word: "zǎi gē", correct: "宰割", wrong: "载割" },
+	{ word: "jiā suǒ", correct: "枷锁", wrong: "驾锁" },
+	{ word: "jìn gù", correct: "禁锢", wrong: "禁固" },
+	{ word: "xuē ruò", correct: "削弱", wrong: "消弱" },
+	{ word: "xiāo guǒ pí", correct: "削果皮", wrong: "消果皮" },
+	{ word: "dǎ lèi", correct: "打擂", wrong: "打雷" },
+	{ word: "zì chuī zì léi", correct: "自吹自擂", wrong: "自吹自雷" },
+	{ word: "wú jī zhī tán", correct: "无稽之谈", wrong: "无嵇之谈" },
+	{ word: "wǔ huā bā mén", correct: "五花八门", wrong: "五化八门" },
+	{ word: "liáo luò", correct: "寥落", wrong: "了落" },
+	{ word: "xǐ dí", correct: "洗涤", wrong: "洗条" },
+	{ word: "chóu chú", correct: "踌躇", wrong: "踌蹰" },
+	{ word: "jié ào", correct: "桀骜", wrong: "桀傲" },
+	{ word: "lìn wū", correct: "赁屋", wrong: "任屋" },
+	{ word: "è hào", correct: "噩耗", wrong: "恶耗" },
+	{ word: "shī hái", correct: "尸骸", wrong: "尸亥" },
+	{ word: "tú lù", correct: "屠戮", wrong: "屠戳" },
+	{ word: "jìn zì", correct: "浸渍", wrong: "浸责" },
+	{ word: "fēi hóng", correct: "绯红", wrong: "非红" },
+	{ word: "cuán shè", correct: "攒射", wrong: "赞射" },
+	{ word: "jī zǎn", correct: "积攒", wrong: "积赞" },
+	{ word: "mǒ shā", correct: "抹杀", wrong: "抹煞" },
+	{ word: "mā bù", correct: "抹布", wrong: "麻布" },
+	{ word: "fěi bó", correct: "菲薄", wrong: "非薄" },
+	{ word: "fāng fēi", correct: "芳菲", wrong: "芳非" },
+	{ word: "chuāng shāng", correct: "创伤", wrong: "创仿" },
+	{ word: "chuàng shè", correct: "创设", wrong: "创色" },
+	{ word: "chéng chuāng", correct: "惩创", wrong: "惩疮" },
+	{ word: "yǔn shēn bù xù", correct: "殒身不恤", wrong: "陨身不恤" },
+	{ word: "cháng gē dàng kū", correct: "长歌当哭", wrong: "长歌挡哭" },
+	{ word: "jié ào bù xùn", correct: "桀骜不驯", wrong: "桀傲不驯" },
+	{ word: "guǎng yǒu yǔ yì", correct: "广有羽翼", wrong: "广有羽冀" },
+	{ word: "chǎn mèi", correct: "谄媚", wrong: "陷媚" },
+	{ word: "xiān mǐ", correct: "籼米", wrong: "仙米" },
+	{ word: "zhàng bù", correct: "账簿", wrong: "账薄" },
+	{ word: "pán shān", correct: "蹒跚", wrong: "盘跚" },
+	{ word: "kū lóu", correct: "骷髅", wrong: "骷楼" },
+	{ word: "cáo zá", correct: "嘈杂", wrong: "嘈咂" },
+	{ word: "lì shǔ", correct: "隶属", wrong: "力属" },
+	{ word: "lòng táng", correct: "弄堂", wrong: "隆堂" },
+	{ word: "dǎn qiè", correct: "胆怯", wrong: "胆却" },
+	{ word: "wō jù", correct: "莴苣", wrong: "窝苣" },
+	{ word: "nüè dài", correct: "虐待", wrong: "虚待" },
+	{ word: "gá piào", correct: "轧票", wrong: "扎票" },
+	{ word: "zhá gāng", correct: "轧钢", wrong: "扎钢" },
+	{ word: "qīng yà", correct: "倾轧", wrong: "倾扎" },
+	{ word: "hōng xiào", correct: "哄笑", wrong: "轰笑" },
+	{ word: "hǒng piàn", correct: "哄骗", wrong: "轰骗" },
+	{ word: "yī hòng ér sàn", correct: "一哄而散", wrong: "一轰而散" },
+	{ word: "káng yuán mián", correct: "扛原棉", wrong: "杠原棉" },
+	{ word: "lì néng gāng dǐng", correct: "力能扛鼎", wrong: "力能杠鼎" },
+	{ word: "héng qī shù bā", correct: "横七竖八", wrong: "横七树八" },
+	{ word: "bù jiǎ sī suǒ", correct: "不假思索", wrong: "不加思索" },
+	{ word: "shǔn xī", correct: "吮吸", wrong: "允吸" },
+	{ word: "chán jiǎo", correct: "缠绞", wrong: "缠搅" },
+	{ word: "xī gài", correct: "膝盖", wrong: "漆盖" },
+	{ word: "qiú shuǐ", correct: "泅水", wrong: "囚水" },
+	{ word: "fú shuǐ", correct: "凫水", wrong: "浮水" },
+	{ word: "yāo he", correct: "吆喝", wrong: "么喝" },
+	{ word: "hé huā diàn", correct: "荷花淀", wrong: "荷花靛" },
+	{ word: "mán hèng", correct: "蛮横", wrong: "蛮亨" },
+	{ word: "héng guàn", correct: "横贯", wrong: "衡贯" },
+	{ word: "jù diǎn", correct: "据点", wrong: "居点" },
+	{ word: "jié jū", correct: "拮据", wrong: "节据" },
+	{ word: "pū leng", correct: "扑棱", wrong: "扑愣" },
+	{ word: "léng jiǎo", correct: "棱角", wrong: "愣角" },
+	{ word: "zhǎng luò", correct: "涨落", wrong: "长落" },
+	{ word: "hóng zhàng", correct: "红涨", wrong: "红胀" },
+	{ word: "tóng qiáng tiě bì", correct: "铜墙铁壁", wrong: "铜墙铁璧" },
+	{ word: "ǒu duàn sī lián", correct: "藕断丝连", wrong: "藕断丝联" },
+	{ word: "mào mao shī shī", correct: "冒冒失失", wrong: "冒冒矢矢" }
 ];
+
 let canvas, ctx;
 var correctAudio = new Audio("./assets/correct_effect.mp3");
 var incorrectAudio = new Audio("./assets/wrong_effect.mp3");
 var bgAudio = new Audio("./assets/gimkit_flisl.mp3");
-// 初始化
+
 function init() {
-	var correctAudio = new Audio("./assets/correct_effect.mp3");
-	var incorrectAudio = new Audio("./assets/wrong_effect.mp3");
-	var bgAudio = new Audio("./assets/gimkit_flisl.mp3");
+	correctAudio = new Audio("./assets/correct_effect.mp3");
+	incorrectAudio = new Audio("./assets/wrong_effect.mp3");
+	bgAudio = new Audio(["./assets/gimkit_blstb.mp3", "./assets/gimkit_classic.mp3", "./assets/gimkit_flisl.mp3"][parseInt(Math.random() * 3)]);
+
 	canvas = document.getElementById("game-canvas");
 	ctx = canvas.getContext("2d");
 	setupEventListeners();
@@ -139,12 +314,15 @@ function resetGame() {
 	gameState.userSelection = null;
 	gameState.isChoosing = false;
 	gameState.snakeSpeedCounter = 0;
+	gameState.hearts = 3;
 
 	gameState.snake = [
 		{ x: 5, y: 10 },
 		{ x: 4, y: 10 },
 		{ x: 3, y: 10 },
 	];
+
+	bgAudio = new Audio(["./assets/gimkit_blstb.mp3", "./assets/gimkit_classic.mp3", "./assets/gimkit_flisl.mp3"][parseInt(Math.random() * 3)]);
 
 	document.getElementById("correct-count").textContent = "0";
 	document.getElementById("wrong-count").textContent = "0";
@@ -153,6 +331,20 @@ function resetGame() {
 
 	updateDisplay();
 	updateTimerDisplay();
+	updateHeartsDisplay();
+}
+
+function updateHeartsDisplay() {
+    const heartsContainer = document.getElementById("hearts-display");
+    if (!heartsContainer) return;
+    
+    heartsContainer.innerHTML = '';
+    
+    for (let i = 0; i < gameState.hearts; i++) {
+        const heart = document.createElement("span");
+        heart.innerHTML = '<i class="fas fa-heart" style="color: #e74c3c; margin: 0 2px;"></i>';
+        heartsContainer.appendChild(heart);
+    }
 }
 
 function generateFoodPair() {
@@ -241,7 +433,7 @@ function generateFoodPair() {
 			word: question.word,
 			correctPinyin: correctIsFirst ? options[0].pinyin : options[1].pinyin,
 		};
-	} while (Math.abs(food1.x - food2.x) < 2 && Math.abs(food1.y - food2.y) < 2);
+	} while (Math.abs(food1.x - food2.x) < 3 && Math.abs(food1.y - food2.y) < 3);
 
 	// 调整位置避免重叠
 	[food1, food2].forEach((food) => {
@@ -260,11 +452,6 @@ function generateFoodPair() {
 				food.y = Math.floor(Math.random() * (gridHeight - 4)) + 2;
 			}
 
-			foodTooNear = Math.abs(food1.x - food2.x) <= 2 && Math.abs(food1.y - food2.y) <= 2;
-			if (foodTooNear) {
-				continue;
-			} // Is this right??
-
 			attempts++;
 			if (attempts > maxAttempts) {
 				// 放在安全区域
@@ -275,7 +462,7 @@ function generateFoodPair() {
 						: Math.floor(gridHeight * 0.7);
 				break;
 			}
-		} while (foodOnSnake);
+		} while (foodOnSnake && Math.abs(food1.x - food2.x) < 3 && Math.abs(food1.y - food2.y) < 3);
 	});
 
 	gameState.foods.push(food1, food2);
@@ -469,21 +656,60 @@ function showFeedback(message, isCorrect) {
 }
 
 function checkCollisions() {
-	const head = gameState.snake[0];
-	const gridWidth = canvas.width / CONFIG.GRID_SIZE;
-	const gridHeight = canvas.height / CONFIG.GRID_SIZE;
+    const head = gameState.snake[0];
+    const gridWidth = canvas.width / CONFIG.GRID_SIZE;
+    const gridHeight = canvas.height / CONFIG.GRID_SIZE;
 
-	if (head.x < 0 || head.x >= gridWidth || head.y < 0 || head.y >= gridHeight) {
-		gameOver("撞墙了！");
-		return;
+    // Check wall collision
+    if (head.x < 0 || head.x >= gridWidth || head.y < 0 || head.y >= gridHeight) {
+        loseHeart("撞墙了！");
+        return;
+    }
+
+    // Check self collision
+    for (let i = 1; i < gameState.snake.length; i++) {
+        if (head.x === gameState.snake[i].x && head.y === gameState.snake[i].y) {
+            loseHeart("撞到自己了！");
+            return;
+        }
+    }
+}	
+function loseHeart(reason) {
+    gameState.hearts--;
+    updateHeartsDisplay();
+    
+    // Show feedback
+	showFeedback(`❌ ${reason} 失去一颗心！`, false);
+    
+    // Check if game over
+    if (gameState.hearts <= 0) {
+        setTimeout(() => {
+            gameOver("所有生命值已用尽！");
+        }, 500);
+    }
+
+	setTimeout(() => { resetSnakePosition(); }, 50);
+}
+
+function resetSnakePosition() {
+    // Reset snake to initial position
+	let originalLen = gameState.snake.length;
+
+	gameState.snake = [];
+	for (let i = 0; i < originalLen; i++) {
+		gameState.snake.push({ x: 6 - i, y: 10 });
 	}
 
-	for (let i = 1; i < gameState.snake.length; i++) {
-		if (head.x === gameState.snake[i].x && head.y === gameState.snake[i].y) {
-			gameOver("撞到自己了！");
-			return;
-		}
-	}
+    
+    // Reset direction to right
+    gameState.direction = { x: 1, y: 0 };
+    
+    // Clear user selection
+    gameState.userSelection = null;
+    gameState.isChoosing = false;
+    
+    // Reset speed counter
+    gameState.snakeSpeedCounter = 0;
 }
 
 // 绘制
@@ -709,6 +935,7 @@ function togglePause() {
 		? '<i class="fas fa-play"></i> 继续'
 		: '<i class="fas fa-pause"></i> 暂停';
 }
+
 
 function gameOver(reason) {
 	gameState.gameRunning = false;

@@ -1,7 +1,8 @@
-- 音效
+- 音效 - Ok
 - random - Ok
 - 游戏结束 - 重生
-- 去掉选择
+- 去掉选择 - Ok
 - increase font size
-- add gimkit bgm
-- increase game speed
+- add more gimkit bgm
+- increase game speed - Ok
+- 错题本

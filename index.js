@@ -538,25 +538,44 @@ function gameLoop(currentTimestamp) {
 }
 
 let wrongAnswers = new Set();
-let wrongAnswersList = []
+let wrongAnswersList = [];
 
-function showWrongAnswers() {
-  if (!gameState.gamePaused) {
-    togglePause();
-  }
-  wrongAnswersList = [...wrongAnswers];
-  
-  console.log("showWrongAnswers()");
-  for (let i = 0; i < wrongAnswersList.length; i++) {
-    console.log(`${i + 1}: ${wrongAnswersList[i].word}: 正确：${wrongAnswersList[i].correct}, 错误：${wrongAnswersList[i].pinyin}`);
-  }
+function waitForReviewPopupClose() {
+  return new Promise((resolve) => {
+    const popup = document.getElementById("review-popup");
+    const closeBtn = document.getElementById("review-close");
 
-  // Create and show popup
-  showWrongAnswersPopup(wrongAnswersList);
+    popup.style.display = "block";
+
+    const handler = () => {
+      popup.style.display = "none";
+      closeBtn.removeEventListener("click", handler);
+      resolve();
+    };
+
+    closeBtn.addEventListener("click", handler);
+  });
 }
 
-// New function to show the popup
-function showWrongAnswersPopup(wrongAnswersList) {
+
+function showWrongAnswers() {
+  return new Promise((resolve) => {
+    if (!gameState.gamePaused) {
+      togglePause();
+    }
+    wrongAnswersList = [...wrongAnswers];
+    
+    console.log("showWrongAnswers()");
+    for (let i = 0; i < wrongAnswersList.length; i++) {
+      console.log(`${i + 1}: ${wrongAnswersList[i].word}: 正确：${wrongAnswersList[i].correct}, 错误：${wrongAnswersList[i].pinyin}`);
+    }
+
+    // Create and show popup
+    showWrongAnswersPopup(wrongAnswersList, resolve);
+  });
+}
+
+function showWrongAnswersPopup(wrongAnswersList, resolveCallback) {
   const popup = document.getElementById('wrongAnswersPopup');
   const contentDiv = document.getElementById('wrongAnswersList');
   
@@ -570,7 +589,7 @@ function showWrongAnswersPopup(wrongAnswersList) {
     wrongAnswersList.forEach((answer, index) => {
       const itemDiv = document.createElement('div');
       itemDiv.className = 'wrong-answer-item';
-      itemDiv.style.setProperty('--item-index', index); // For staggered animation
+      itemDiv.style.setProperty('--item-index', index);
       
       itemDiv.innerHTML = `
         <div style="font-size: 1.2rem; margin-bottom: 5px; font-weight: bold;">
@@ -592,24 +611,29 @@ function showWrongAnswersPopup(wrongAnswersList) {
   
   // Show the popup
   popup.style.display = 'flex';
-  document.body.style.overflow = 'hidden'; // Prevent scrolling
+  document.body.style.overflow = 'hidden';
   
   // Add event listeners for closing
-  setupPopupCloseEvents();
+  setupPopupCloseEvents(resolveCallback);
 }
 
-function setupPopupCloseEvents() {
+function setupPopupCloseEvents(resolveCallback) {
   const popup = document.getElementById('wrongAnswersPopup');
   const closeBtn = document.querySelector('.close-btn');
   const closePopupBtn = document.getElementById('closePopupBtn');
   
   function closePopup() {
     popup.style.display = 'none';
-    document.body.style.overflow = 'auto'; // Re-enable scrolling
+    document.body.style.overflow = 'auto';
     
     // Resume game if it was paused
     if (gameState.gamePaused) {
       togglePause();
+    }
+    
+    // Resolve the promise when popup is closed
+    if (resolveCallback) {
+      resolveCallback();
     }
   }
   
@@ -1016,30 +1040,34 @@ function togglePause() {
 }
 
 
-function gameOver(reason) {
-	gameState.gameRunning = false;
-	clearInterval(gameState.timerInterval);
-
-	setTimeout(() => {
-		const finalScore = gameState.score;
-		const correctCount = document.getElementById("correct-count").textContent;
-		const wrongCount = document.getElementById("wrong-count").textContent;
-		// TODO
-		alert(
-			`游戏结束！\n${reason}\n\n` +
-			`最终得分: ${finalScore}\n` +
-			`正确读音: ${correctCount}个\n` +
-			`错误读音: ${wrongCount}个\n` +
-			`正确率: ${Math.round(
-				(correctCount / (parseInt(correctCount) + parseInt(wrongCount))) *
-				100
-			) || 0
-			}%`
-		);
-		bgAudio.pause();
-		showWrongAnswers();
-		backToLogin();
-	}, 500);
+async function gameOver(reason) {
+    gameState.gameRunning = false;
+    clearInterval(gameState.timerInterval);
+    
+    // Pause background audio
+    bgAudio.pause();
+    
+    // Show game over summary
+    const finalScore = gameState.score;
+    const correctCount = document.getElementById("correct-count").textContent;
+    const wrongCount = document.getElementById("wrong-count").textContent;
+    const total = parseInt(correctCount) + parseInt(wrongCount);
+    const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+    
+    // Using alert (not recommended, but if you must)
+    setTimeout(() => {
+            alert(
+                `游戏结束！\n${reason}\n\n` +
+                `最终得分: ${finalScore}\n` +
+                `正确读音: ${correctCount}个\n` +
+                `错误读音: ${wrongCount}个\n` +
+                `正确率: ${accuracy}%`
+            );
+            resolve();
+        }, 200);
+    await showWrongAnswers();
+    await waitForReviewPopupClose();
+    backToLogin();
 }
 
 function backToLogin() {

@@ -541,17 +541,96 @@ let wrongAnswers = new Set();
 let wrongAnswersList = []
 
 function showWrongAnswers() {
-	if (!gameState.gamePaused) {
-		togglePause();
-	}
-	wrongAnswersList = [ ...wrongAnswers ];
-	
-	console.log("showWrongAnswers()");
-	for (let i = 0; i < wrongAnswersList.length; i++) {
-		console.log(`${i + 1}: ${wrongAnswersList[i].word}: 正确：${wrongAnswersList[i].correct}, 错误：${wrongAnswersList[i].pinyin}`);
-	}
+  if (!gameState.gamePaused) {
+    togglePause();
+  }
+  wrongAnswersList = [...wrongAnswers];
+  
+  console.log("showWrongAnswers()");
+  for (let i = 0; i < wrongAnswersList.length; i++) {
+    console.log(`${i + 1}: ${wrongAnswersList[i].word}: 正确：${wrongAnswersList[i].correct}, 错误：${wrongAnswersList[i].pinyin}`);
+  }
 
-	// add animation, pop-up, showing wrong and correct aswes
+  // Create and show popup
+  showWrongAnswersPopup(wrongAnswersList);
+}
+
+// New function to show the popup
+function showWrongAnswersPopup(wrongAnswersList) {
+  const popup = document.getElementById('wrongAnswersPopup');
+  const contentDiv = document.getElementById('wrongAnswersList');
+  
+  // Clear previous content
+  contentDiv.innerHTML = '';
+  
+  if (wrongAnswersList.length === 0) {
+    contentDiv.innerHTML = '<p style="text-align: center; color: #666;">没有错题！太棒了！🎉</p>';
+  } else {
+    // Add each wrong answer to the popup
+    wrongAnswersList.forEach((answer, index) => {
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'wrong-answer-item';
+      itemDiv.style.setProperty('--item-index', index); // For staggered animation
+      
+      itemDiv.innerHTML = `
+        <div style="font-size: 1.2rem; margin-bottom: 5px; font-weight: bold;">
+          ${index + 1}. ${answer.word}
+        </div>
+        <div style="margin-bottom: 3px;">
+          <span style="color: #555;">你的答案：</span>
+          <span class="wrong-answer">${answer.pinyin}</span>
+        </div>
+        <div>
+          <span style="color: #555;">正确答案：</span>
+          <span class="correct-answer">${answer.correct}</span>
+        </div>
+      `;
+      
+      contentDiv.appendChild(itemDiv);
+    });
+  }
+  
+  // Show the popup
+  popup.style.display = 'flex';
+  document.body.style.overflow = 'hidden'; // Prevent scrolling
+  
+  // Add event listeners for closing
+  setupPopupCloseEvents();
+}
+
+function setupPopupCloseEvents() {
+  const popup = document.getElementById('wrongAnswersPopup');
+  const closeBtn = document.querySelector('.close-btn');
+  const closePopupBtn = document.getElementById('closePopupBtn');
+  
+  function closePopup() {
+    popup.style.display = 'none';
+    document.body.style.overflow = 'auto'; // Re-enable scrolling
+    
+    // Resume game if it was paused
+    if (gameState.gamePaused) {
+      togglePause();
+    }
+  }
+  
+  // Button click events
+  closeBtn.onclick = closePopup;
+  closePopupBtn.onclick = closePopup;
+  
+  // Click outside to close
+  popup.onclick = function(event) {
+    if (event.target === popup) {
+      closePopup();
+    }
+  };
+  
+  // Escape key to close
+  document.addEventListener('keydown', function handleEscape(event) {
+    if (event.key === 'Escape' && popup.style.display === 'flex') {
+      closePopup();
+      document.removeEventListener('keydown', handleEscape);
+    }
+  });
 }
 
 function updateGame() {
@@ -1029,3 +1108,12 @@ document.head.appendChild(style);
 
 // 页面加载完成后初始化
 window.addEventListener("DOMContentLoaded", init);
+// Optional: Add this to initialize the popup when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  // The popup HTML should already be in your page
+  // Just hide it initially
+  const popup = document.getElementById('wrongAnswersPopup');
+  if (popup) {
+    popup.style.display = 'none';
+  }
+});

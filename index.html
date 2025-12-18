@@ -56,7 +56,9 @@
               <!-- Hearts will be inserted here by JavaScript -->
           </div>
           <div class="incorrect">
-              <h2 id="incorrect-btn"><button onclick="handleClickReview()" id="review-btn">错题本</button></h2>
+              <h2 id="incorrect-btn">
+                <button onclick="handleClickReview()" id="review-btn">错题本</button>
+              </h2>
           </div>
           <div class="score-display">
             <div>
@@ -101,7 +103,7 @@
 
           <div class="game-info">
             <div class="current-word">
-              <h3>当前汉字</h3>
+              <h3>当前题目</h3>
               <div
                 style="
                   font-size: 2.5em;
@@ -164,6 +166,20 @@
                 1. 选择正确：得分，长度不变<br />
                 2. 选择错误：扣分，蛇变长（增加难度）
               </p>
+            </div>
+          </div>
+        </div>
+        <div id="wrongAnswersPopup" class="popup-overlay">
+          <div class="popup-container">
+            <div class="popup-header">
+              <h2>错题回顾</h2>
+              <button class="close-btn">&times;</button>
+            </div>
+            <div class="popup-content">
+              <div id="wrongAnswersList"></div>
+            </div>
+            <div class="popup-footer">
+              <button id="closePopupBtn">关闭</button>
             </div>
           </div>
         </div>
